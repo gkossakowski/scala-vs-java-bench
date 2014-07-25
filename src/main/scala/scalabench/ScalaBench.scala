@@ -74,11 +74,23 @@ object ScalaBench {
     writeSourceFiles(scalaTargetDir, classes)
   }
 
+  private def scalaArgs(stopBeforePhaseName: String, srcFiles: Seq[File]): Seq[String] =
+    Seq("-usejavacp", "-d", targetClasses.getAbsolutePath, s"-Ystop-before:$stopBeforePhaseName") ++ srcFiles.map(_.getAbsoluteFile.toString)
+
   def compileScala(srcFiles: Seq[File]): Unit = {
     val main = scala.tools.nsc.Main
-    val args = Seq("-usejavacp", "-d", targetClasses.getAbsolutePath) ++ srcFiles.map(_.getAbsoluteFile.toString)
+    val args = scalaArgs("patmat", srcFiles)
     //println(s"scalac args: $args")
     main.process(args.toArray)
+  }
+
+  def compileDotty(srcFiles: Seq[File]): Unit = {
+    val main = dotty.tools.dotc.Main
+    val args = scalaArgs("superaccessors", srcFiles)
+    //println(s"scalac args: $args")
+    import dotty.tools.dotc.core.Contexts
+    val initCtx = (new Contexts.ContextBase).initialCtx
+    main.process(args.toArray, initCtx)
   }
 
   def compileJava(srcFiles: Seq[File]): Unit = {
@@ -101,6 +113,7 @@ object ScalaBench {
     val javaFiles = writeJava
     val scalaFiles = writeScala
     //measureTime("javac") { compileJava(javaFiles) }
+    //measureTime("dottyc") { compileDotty(scalaFiles) }
     measureTime("scalac") { compileScala(scalaFiles) }
 
     println("done")
