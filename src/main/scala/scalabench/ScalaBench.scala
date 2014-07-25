@@ -5,7 +5,7 @@ import java.io.FileWriter
 import javax.tools.ToolProvider
 
 object ScalaBench {
-  val numberOfClasses = 5000
+  val numberOfClasses = 2500
   val targetDir = {
     val d = new File("target/generatedSrcs")
     d.delete()
