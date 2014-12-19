@@ -2,7 +2,7 @@ name := "scala-vs-java-bench"
 
 version := "0.1-SNAPSHOT"
 
-scalaVersion := "2.11.2"
+scalaVersion := "2.11.4"
 
 libraryDependencies += "org.scala-lang" % "scala-compiler" % scalaVersion.value
 
