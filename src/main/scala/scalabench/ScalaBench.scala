@@ -5,7 +5,7 @@ import java.io.FileWriter
 import javax.tools.ToolProvider
 
 object ScalaBench {
-  val numberOfClasses = 2500
+  val numberOfClasses = 5000
   val targetDir = {
     val d = new File("target/generatedSrcs")
     d.delete()
@@ -79,15 +79,16 @@ object ScalaBench {
 
   def compileScala(srcFiles: Seq[File]): Unit = {
     val main = scala.tools.nsc.Main
-    val args = scalaArgs("patmat", srcFiles)
+    // stop right before backend because dotty doesn't implement it yet
+    val args = scalaArgs(stopBeforePhaseName = "icode", srcFiles)
     //println(s"scalac args: $args")
     main.process(args.toArray)
   }
 
   def compileDotty(srcFiles: Seq[File]): Unit = {
     val main = dotty.tools.dotc.Main
-    val args = scalaArgs("superaccessors", srcFiles)
-    //println(s"scalac args: $args")
+    // stop right before backend because dotty doesn't implement it yet
+    val args = scalaArgs(stopBeforePhaseName = "genBCode", srcFiles)
     import dotty.tools.dotc.core.Contexts
     val initCtx = (new Contexts.ContextBase).initialCtx
     main.process(args.toArray, initCtx)
@@ -112,8 +113,14 @@ object ScalaBench {
   def main(args: Array[String]): Unit = {
     val javaFiles = writeJava
     val scalaFiles = writeScala
-    //measureTime("javac") { compileJava(javaFiles) }
-    //measureTime("dottyc") { compileDotty(scalaFiles) }
+    for (_ <- 1 to 5) {
+      compileJava(javaFiles)
+      compileDotty(scalaFiles)
+      compileScala(scalaFiles)
+    }
+    println("Warmup: done")
+    measureTime("javac") { compileJava(javaFiles) }
+    measureTime("dottyc") { compileDotty(scalaFiles) }
     measureTime("scalac") { compileScala(scalaFiles) }
 
     println("done")
